@@ -32,24 +32,23 @@ def totheend():
 
 ##################################
 def catchExceptionAppl(getErrorEx):
-	#"Automatically log the current function details."
-    # Get the previous frame in the stack, otherwise it would
-    # be this function!!!
-    func = inspect.currentframe().f_back.f_code
+                #"Automatically log the current function details."
+        # Get the previous frame in the stack, otherwise it would
+        # be this function!!!
+        func = inspect.currentframe().f_back.f_code
 
-    # Dump the message + the name of this function to the log.
-    logging.debug("%s: %s in %s:%i" % (
-        getErrorEx, 
-        func.co_name, 
-        func.co_filename, 
-        func.co_firstlineno
-    ))
-
+        # Dump the message + the name of this function to the log.
+        logging.debug("%s: %s in %s:%i" % (
+                getErrorEx,
+                func.co_name,
+                func.co_filename,
+                func.co_firstlineno
+        ))
 ###catchExceptionAppl#############
 
 ##################################
 def redisInfoGet():
-      return r.info()
+      return (r.info('all'))
 ####redisInfoGet##################
 
 ##################################
@@ -163,24 +162,11 @@ def defRedisVerifyKey(nrkeys):
 			try:
 				s = r.keys(pattern=keyname + '_*')
 				if s:
-					logging.critical('DEL failed ' + str(len(s)))
-					logging.critical(r.keys(pattern=keyname + '_*'))
-					totheend()
+						logging.critical('DEL failed ' + str(len(s)))
+						logging.critical(r.keys(pattern=keyname + '_*'))
+						totheend()
 				else:
-					logging.info('DEL success')
-
-				# get all info redis
-				logging.info(r.info('Server'))
-				logging.info(r.info('Stats'))       
-				logging.info(r.info('Memory'))      
-				logging.info(r.info('Clients'))     
-				logging.info(r.info('Persistence')) 
-				logging.info(r.info('Replication')) 
-				logging.info(r.info('CPU'))         
-				logging.info(r.info('Commandstats'))
-				logging.info(r.info('Cluster'))     
-				logging.info(r.info('Keyspace'))    
-				
+    					logging.info('DEL success')
 
 			except Exception as ex:
 			   catchExceptionAppl(ex)
@@ -217,10 +203,9 @@ if __name__ == "__main__":
 	logging.info('--verify , create-delete-verify')
 	logging.info('--host , redis host')
 	logging.info('--port  , redis tcp port')
+	logging.info('--keyname , key name prefix')
 	logging.info(printSepChar())
-    
  
-
 	# parser arguments
 	usage = "usage: %prog [options] --create --delete --verify [--keyname] [--host] [--port] "
 	parser = optparse.OptionParser(usage)
@@ -243,16 +228,17 @@ if __name__ == "__main__":
 	try:
 		r = redis.StrictRedis(host=options.host, port=options.port, db=0)
 
+		logging.info('REDIS ping ' + str(r.ping()))
+		logging.info('REDIS info:')
+		pp = pprint.PrettyPrinter(indent=4)
+		redisinfobegin = redisInfoGet()
+		pp.pprint(redisinfobegin)
+
 	except Exception as ex:
 		catchExceptionAppl(ex)
+		sys.exit(1)
 
-	logging.info('REDIS ping ' + str(r.ping()))
-	logging.info('REDIS info:')
-	pp = pprint.PrettyPrinter(indent=4)
-	redisinfobegin = redisInfoGet()
-	pp.pprint(redisinfobegin)
-
-	keyname=options.keyname 
+	keyname=options.keyname
 
 	if options.create:
 		nrkeys=1000
